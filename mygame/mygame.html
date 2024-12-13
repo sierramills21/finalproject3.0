@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Snake Game</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #282c34;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    canvas {
+      background: black;
+      display: block;
+    }
+    .controls {
+      margin-top: 10px;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    h1 {
+      margin: 10px 0;
+      font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Spicy Snake Game 21 - <a href="../index.html">Back to Resume</a> - <a href="../myown/scratch.html">Back to Scratch</a></h1>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <div class="controls">
+    <button id="startButton">Start Game</button>
+    <button id="retryButton" style="display: none;">Try Again</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const startButton = document.getElementById('startButton');
+    const retryButton = document.getElementById('retryButton');
+
+    // Game variables
+    const boxSize = 20;
+    let snake, food, direction, gameInterval;
+
+    function initializeGame() {
+      snake = [{ x: 200, y: 200 }];
+      food = { x: getRandomCoord(), y: getRandomCoord() };
+      direction = 'RIGHT';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawRect(food.x, food.y, 'red');
+      snake.forEach(segment => drawRect(segment.x, segment.y, 'lime'));
+    }
+
+    function getRandomCoord() {
+      return Math.floor(Math.random() * (canvas.width / boxSize)) * boxSize;
+    }
+
+    function drawRect(x, y, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, boxSize, boxSize);
+    }
+
+    function gameLoop() {
+      // Move the snake
+      const head = { ...snake[0] };
+      if (direction === 'UP') head.y -= boxSize;
+      if (direction === 'DOWN') head.y += boxSize;
+      if (direction === 'LEFT') head.x -= boxSize;
+      if (direction === 'RIGHT') head.x += boxSize;
+
+      // Check collisions with walls or itself
+      if (
+        head.x < 0 || head.x >= canvas.width ||
+        head.y < 0 || head.y >= canvas.height ||
+        snake.some(segment => segment.x === head.x && segment.y === head.y)
+      ) {
+        clearInterval(gameInterval);
+        alert('Game Over!');
+        startButton.style.display = 'none';
+        retryButton.style.display = 'inline-block';
+        return;
+      }
+
+      // Check if snake eats food
+      if (head.x === food.x && head.y === food.y) {
+        food = { x: getRandomCoord(), y: getRandomCoord() };
+      } else {
+        snake.pop(); // Remove the tail
+      }
+
+      snake.unshift(head); // Add new head
+
+      // Draw everything
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawRect(food.x, food.y, 'red');
+      snake.forEach(segment => drawRect(segment.x, segment.y, 'lime'));
+    }
+
+    function changeDirection(event) {
+      const key = event.key;
+      if (key === 'ArrowUp' && direction !== 'DOWN') direction = 'UP';
+      if (key === 'ArrowDown' && direction !== 'UP') direction = 'DOWN';
+      if (key === 'ArrowLeft' && direction !== 'RIGHT') direction = 'LEFT';
+      if (key === 'ArrowRight' && direction !== 'LEFT') direction = 'RIGHT';
+    }
+
+    function startGame() {
+      initializeGame();
+      startButton.style.display = 'none';
+      retryButton.style.display = 'none';
+      gameInterval = setInterval(gameLoop, 150);
+    }
+
+    startButton.addEventListener('click', startGame);
+    retryButton.addEventListener('click', startGame);
+    document.addEventListener('keydown', changeDirection);
+
+    // Initialize the game state for first load
+    initializeGame();
+  </script>
+</body>
+</html>
